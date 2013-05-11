@@ -60,33 +60,33 @@ public class Loader {
 		Return the number of lines in a file, given a filename
 	*/ 
 	private static int countFileLines(String filename) throws IOException {
-    InputStream stream = new BufferedInputStream(new FileInputStream(filename));
-    try {
-    	// init counter variables
-        int readC = 0; int i = 0; 
-        // initiliase byte (character) container 
-        byte[] bytes = new byte[1024];
+	    InputStream stream = new BufferedInputStream(new FileInputStream(filename));
+	    try {
+	    	// init counter variables
+	        int readC = 0; int i = 0; 
+	        // initiliase byte (character) container 
+	        byte[] bytes = new byte[1024];
 
-        // used for returning '1' as final result if set to false, as in 
-        // when there's characters in the text file but no carriage returns / newlines 
-        boolean noChar = true;
+	        // used for returning '1' as final result if set to false, as in 
+	        // when there's characters in the text file but no carriage returns / newlines 
+	        boolean noChar = true;
 
-        // loop through each line of file
-        while ((readC = stream.read(bytes)) != -1) {
-            noChar = false;
-            // loop through characters, checking for newline character - if so, increment count
-            for (int j = 0; j < readC; ++j) {
-                if (bytes[j] == '\n') {
-                    ++i;
-                }
-            }
-        }
+	        // loop through each line of file
+	        while ((readC = stream.read(bytes)) != -1) {
+	            noChar = false;
+	            // loop through characters, checking for newline character - if so, increment count
+	            for (int j = 0; j < readC; ++j) {
+	                if (bytes[j] == '\n') {
+	                    ++i;
+	                }
+	            }
+	        }
 
-        // return '1' if i == 0 and noChar = false (Assume 1 line if there's characters 
-        // but no newline character)... else just return 'i', the number of lines
-        return (i == 0 && !noChar) ? 1 : i;
-    } finally {
-        stream.close();
-    }
-}
+	        // return '1' if i == 0 and noChar = false (Assume 1 line if there's characters 
+	        // but no newline character)... else just return 'i', the number of lines
+	        return (i == 0 && !noChar) ? 1 : i;
+	    } finally {
+	        stream.close();
+	    }
+	}
 }
