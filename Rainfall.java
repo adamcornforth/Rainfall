@@ -86,6 +86,17 @@ public class Rainfall {
 	}
 
 	/* 
+		Returns the index (key) of the month denoted by 'm'
+	*/
+	public int returnIndexOfMonth(String m) {
+		for (int i = 0; i < 12; i++) {
+			if(months[i].equals(m))
+				return i;
+		}
+		return -1;
+	}
+
+	/* 
 		Returns month at index m, with lowest index being the most recent month 
 	*/
 	public String returnMonth(int m) {
@@ -309,7 +320,6 @@ public class Rainfall {
 		Returns month data, as an array
 	*/
 	public String[] returnMonthData(int year, int month) {
-		GregorianCalendar gregCalendar = new GregorianCalendar(year, month, 1);
 		String[] monthArray; 
 		monthArray = new String[31];
 		year = this.returnIndexOfYear(year); 
@@ -318,10 +328,23 @@ public class Rainfall {
 			if(this.data[year][month][d] != null) 
 				monthArray[d] = this.data[year][month][d];
 			else
-				monthArray[d] = "0";
+				monthArray[d] = null;
 		}
 
 		return monthArray;
+	}
+
+	/* 
+		Returns year data (average of each month), as an array
+	*/
+	public String[] returnYearData(int year) {
+		String[] yearArray; 
+		yearArray = new String[12];
+		for(int m = 0; m < 12; m++) {
+			yearArray[m] = this.returnMonthAverage(year, m).replace("mm", ""); 
+		}
+
+		return yearArray;
 	}
 
 }

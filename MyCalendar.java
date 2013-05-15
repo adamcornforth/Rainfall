@@ -23,20 +23,26 @@ public class MyCalendar extends JFrame {
 
 	static DefaultTableModel tableModel; //Table model
 	static JScrollPane calendarScroll; //The scrollframe
-	static JPanel pnlCalendar, pnlYear, pnlControlsMonth;
+	static JPanel pnlCalendar, pnlYear, pnlControlsMonth, pnlControlsYear, pnlMonthView, pnlYearView, pnlTabs, pnlCalendarYear;
 
 	static JLabel lblMonthTitle, lblChangeYear, lblChangeYear2, lblYearTitle, lblYearData;
-	static JButton prevMonth, nextMonth, prevYear, nextYear, plotMonth, plotPrevMonth, plotNextMonth;
+	static JButton prevMonth, nextMonth, prevYear, nextYear, plotMonth, plotPrevMonth, plotNextMonth, plotAgainstMonth, plotYear, plotYearAgainst;
 	static JTable calendarTable;
-	static JComboBox cmbYear, cmbYear2;
+	static JComboBox cmbYear, cmbYear2, cmbYearAgainst, cmbMonthAgainst, cmbYearAgainst2;
+	static JTabbedPane tabbedPane;
 
 	static int maxYear, maxMonth, selectedYear, selectedMonth;
 	private int noOfDays; 
 
 	public MyCalendar (Rainfall rainfall, int maxYear, int maxMonth) {
+		String[] months = rainfall.returnMonthsArray();
 		this.maxYear = maxYear;
 		this.maxMonth = maxMonth;
 		this.rainfall = rainfall;  
+
+		// Set selected year/month to max year/month
+		selectedMonth = maxMonth; 
+		selectedYear = maxYear;
 
 		// Look and feel (set to native look and feel of OS)
 		try {UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());}
@@ -48,9 +54,19 @@ public class MyCalendar extends JFrame {
 		// Set frame
 		calendarFrame = new JFrame ("Rainfall Data"); 
 		calendarFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Exit program when frame closed
-		calendarFrame.setSize(1100, 646); // Set size
+		calendarFrame.setSize(830, 710); // Set size
 		contentFrame = calendarFrame.getContentPane(); 
 		contentFrame.setLayout(null); // Remove layout
+
+		// Two panels for tabs
+		pnlTabs = new JPanel(null);
+		pnlMonthView = new JPanel(null);
+		pnlYearView = new JPanel(null);
+
+		// Tabs 
+		tabbedPane = new JTabbedPane();		
+		tabbedPane.addTab("Year (" + maxYear + ")", pnlYearView);
+		tabbedPane.addTab("Month (" + rainfall.returnMonth(maxMonth) + " " + maxYear + ")", pnlMonthView); 
 
 		// Set labels, buttons, tables, panels and comboboxes
 		lblMonthTitle = new JLabel ("");
@@ -60,24 +76,34 @@ public class MyCalendar extends JFrame {
 		lblYearData = new JLabel(""); 
 		cmbYear = new JComboBox();
 		cmbYear2 = new JComboBox();
+		cmbYearAgainst = new JComboBox();
+		cmbMonthAgainst = new JComboBox();
+		cmbYearAgainst2 = new JComboBox();
 		prevMonth = new JButton ("<html>&laquo; Prev Month</html>");
 		nextMonth = new JButton ("<html>Next Month &raquo;</html>");
 		plotMonth = new JButton ("Plot Month");
 		plotNextMonth = new JButton ("Plot Against Next Month");
 		plotPrevMonth = new JButton ("Plot Against Prev Month");
-		prevYear = new JButton ("<html>&laquo;</html>");
-		nextYear = new JButton ("<html>&raquo;</html>");
+		plotAgainstMonth = new JButton ("Plot Against: ");
+		plotYear = new JButton ("Plot Year");
+		plotYearAgainst = new JButton ("Plot Against: ");
+		prevYear = new JButton ("<html>&laquo; Prev Year</html>");
+		nextYear = new JButton ("<html>Next Year &raquo;</html>");
 		tableModel = new DefaultTableModel(){public boolean isCellEditable(int rowIndex, int mColIndex){return false;}};
 		calendarTable = new JTable(tableModel);
 		calendarScroll = new JScrollPane(calendarTable);
+		pnlTabs = new JPanel(new BorderLayout()); // panel for top tabs
 		pnlCalendar = new JPanel(null);
 		pnlYear = new JPanel(null);
 		pnlControlsMonth = new JPanel(null);
+		pnlControlsYear = new JPanel(null);
+		pnlCalendarYear = new JPanel(null);
 
 		// Set borders
 		pnlCalendar.setBorder(BorderFactory.createTitledBorder("Month Data"));
 		pnlYear.setBorder(BorderFactory.createTitledBorder("Year Data"));
 		pnlControlsMonth.setBorder(BorderFactory.createTitledBorder("Month Plot Controls"));
+		pnlControlsYear.setBorder(BorderFactory.createTitledBorder("Year Plot Controls"));
 
 		// Set action listeners
 		prevMonth.addActionListener(new prevMonth_Listener());
@@ -89,25 +115,24 @@ public class MyCalendar extends JFrame {
 		plotMonth.addActionListener(new plotMonth_Listener());
 		plotPrevMonth.addActionListener(new plotPrevMonth_Listener());
 		plotNextMonth.addActionListener(new plotNextMonth_Listener());
+		plotAgainstMonth.addActionListener(new plotAgainstMonth_Listener());
+		plotYear.addActionListener(new plotYear_Listener());
+		plotYearAgainst.addActionListener(new plotYearAgainst_Listener());
 		
-		// Add panels to frames
-		contentFrame.add(pnlYear); 
-		contentFrame.add(pnlCalendar);
-		contentFrame.add(pnlControlsMonth);
+		// Add tab pane to tab panel
+		pnlTabs.add(tabbedPane); 
 
-		// Add content to month controls panel
-		pnlControlsMonth.add(plotMonth);
-		pnlControlsMonth.add(plotPrevMonth);
-		pnlControlsMonth.add(plotNextMonth);
+		// Add panels to Month View
+		pnlMonthView.add(pnlCalendar);
+		pnlMonthView.add(pnlControlsMonth);
 
-		// Add content to year panel
-		pnlYear.add(lblYearTitle); 
-		pnlYear.add(prevYear); 
-		pnlYear.add(nextYear); 
-		pnlYear.add(lblChangeYear2);
-		pnlYear.add(cmbYear2);
-		pnlYear.add(lblYearTitle); 
-		pnlYear.add(lblYearData); 
+		// Add Panels to Year View
+		pnlYearView.add(pnlCalendarYear); // no content in pnlCalendarYear yet
+		pnlYearView.add(pnlYear); 
+		pnlYearView.add(pnlControlsYear); 
+
+		// Add tab panel to frame
+		contentFrame.add(pnlTabs);
 
 		// Add content to calendar panel
 		pnlCalendar.add(lblMonthTitle);
@@ -117,20 +142,33 @@ public class MyCalendar extends JFrame {
 		pnlCalendar.add(nextMonth);
 		pnlCalendar.add(calendarScroll);
 
-		// Set bounds on month controls panel
-		pnlControlsMonth.setBounds(3, 548, 640, 65);
-		plotMonth.setBounds(10, 20, 90, 35);
-		plotPrevMonth.setBounds(102, 20, 150, 35);
-		plotNextMonth.setBounds(254, 20, 150, 35);
+		// Add content to year panel
+		pnlYear.add(lblYearTitle); 
+		pnlYear.add(prevYear); 
+		pnlYear.add(nextYear); 
+		pnlYear.add(lblChangeYear2);
+		pnlYear.add(cmbYear2);
+		pnlYear.add(lblYearTitle); 
+		pnlYear.add(lblYearData);
 
-		// Set bounds on year panel
-		pnlYear.setBounds(788, 3, 300, 542);
-		lblYearTitle.setBounds(61, 50, 250, 25); 
-		prevYear.setBounds(10, 42, 40, 35);
-		nextYear.setBounds(251, 42, 40, 35); 
-		cmbYear2.setBounds(200, 15, 90, 20);
-		lblChangeYear2.setBounds(131, 15, 85, 20); 
-		lblYearData.setBounds(10, 85, 280, 447); 
+		// Add content to month controls panel
+		pnlControlsMonth.add(plotMonth);
+		pnlControlsMonth.add(plotPrevMonth);
+		pnlControlsMonth.add(plotNextMonth);
+		pnlControlsMonth.add(plotAgainstMonth);
+		pnlControlsMonth.add(cmbYearAgainst);
+		pnlControlsMonth.add(cmbMonthAgainst);
+
+		// Add content to year controls panel
+		pnlControlsYear.add(plotYear); 
+		pnlControlsYear.add(plotYearAgainst); 
+		pnlControlsYear.add(cmbYearAgainst2);
+
+		// Set bounds on Month View, Year View and Tabbed Pane
+		pnlTabs.setBounds(15, 15, 793, 650); 
+		tabbedPane.setBounds(8, 6, 780, 250);
+		pnlMonthView.setBounds(0, 35, 780, 650); 
+		pnlYearView.setBounds(0, 35, 780, 100); 
 
 		// Set bounds on Calendar panel
 		pnlCalendar.setBounds(3, 3, 780, 542);
@@ -140,10 +178,31 @@ public class MyCalendar extends JFrame {
 		prevMonth.setBounds(10, 42, 120, 35);
 		nextMonth.setBounds(651, 42, 120, 35);
 		calendarScroll.setBounds(10, 85, 760, 447);
+
+		// Set bounds on year panel
+		pnlYear.setBounds(3, 3, 780, 542);
+		lblYearTitle.setBounds(400-(lblYearTitle.getPreferredSize().width)/2, 50, 500, 25); 
+		lblChangeYear2.setBounds(608, 15, 85, 20); 
+		cmbYear2.setBounds(679, 15, 90, 20);
+		prevYear.setBounds(10, 42, 120, 35);
+		nextYear.setBounds(651, 42, 120, 35); 
+		lblYearData.setBounds(10, 85, 760, 447); 
+
+		// Set bounds on month controls panel
+		pnlControlsMonth.setBounds(3, 548, 780, 65);
+		plotMonth.setBounds(10, 20, 90, 35);
+		plotPrevMonth.setBounds(112, 20, 150, 35);
+		plotNextMonth.setBounds(264, 20, 150, 35);
+		plotAgainstMonth.setBounds(425, 20, 100, 35);
+		cmbMonthAgainst.setBounds(535, 27, 120, 20); 
+		cmbYearAgainst.setBounds(665, 27, 90, 20); 
+
+		// Set bounds on year conrols panel
+		pnlControlsYear.setBounds(3, 548, 780, 65);
+		plotYear.setBounds(10, 20, 80, 35);
+		plotYearAgainst.setBounds(92, 20, 100, 35);
+		cmbYearAgainst2.setBounds(198, 27, 90, 20); 
 		
-		// Set selected year/month to max year/month
-		selectedMonth = maxMonth; 
-		selectedYear = maxYear;
 		
 		// Add weeks headers
 		String[] weeks = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}; //All weeks
@@ -162,10 +221,16 @@ public class MyCalendar extends JFrame {
 		calendarTable.getTableHeader().setReorderingAllowed(false);
 		
 		//Populate combo boxes
-		for (int i=maxYear-rainfall.getNoOfYears(); i<=maxYear; i++){
+		for (int i = maxYear-rainfall.getNoOfYears(); i <= maxYear; i++){
 			cmbYear.addItem(String.valueOf(i));
 			cmbYear2.addItem(String.valueOf(i));
+			cmbYearAgainst.addItem(String.valueOf(i)); 
+			cmbYearAgainst2.addItem(String.valueOf(i)); 
 		}
+
+		// populate months combo box
+		for(int i = 0; i < 11; i++)
+			cmbMonthAgainst.addItem(months[i]);
 		
 		loadCalendar(maxYear, maxMonth); // Load calendar
 
@@ -188,21 +253,26 @@ public class MyCalendar extends JFrame {
 		if (month == 11 && year >= maxYear){nextMonth.setEnabled(false);} // At last year
 		if (year == maxYear) {nextYear.setEnabled(false);} // At last Year
 
+		// Update tab titles
+		tabbedPane.setTitleAt(0, "Year (" + year + ")");
+		tabbedPane.setTitleAt(1, "Month (" + rainfall.returnMonth(month) + " " + year + ")");
+
 		// Load the year data label
 		lblYearTitle.setText("<html><p align='center'><strong>Year " + String.valueOf(year) + " Rainfall Data (in mm)</strong> <br /> Year Average: " + rainfall.returnYearAverage(year) + "mm </p></html>"); 
-		yearData = "<html><h3 align='center' style='width: 225px;'><br /> <br /><strong>Year " + String.valueOf(year) + " Summary</strong></h3>";
-		yearData += "<p align='center'>Wettest Month: <strong>" + rainfall.returnMonthWettest(year)+ "</strong> <br />Driest Month: <strong>" + rainfall.returnMonthDriest(year)+ "</strong> </p><br /><br /><br />";
+		yearData = "<html>";
+		yearData += "<p align='center'  style='width: 590px;'><br /> <br />Wettest Month: <strong>" + rainfall.returnMonthWettest(year)+ "</strong> <br />Driest Month: <strong>" + rainfall.returnMonthDriest(year)+ "</strong> <br /><br /><br />";
 		for (int m = 0; m < 12; m++) // loop months
 			yearData += "<strong><u>"+ rainfall.returnMonth(m) +"</u></strong> <br /> Min: <strong>" + rainfall.returnMonthDriestDay(year, m) + "</strong>, Max: <strong>" + rainfall.returnMonthWettestDay(year, m) + "</strong>,  Average: <strong>" + rainfall.returnMonthAverage(year, m) + "</strong><br />"; 
-		yearData +="<br /> <br /><br /></html>";  
+		yearData +="<br /> <br /><br /></p></html>";  
 		lblYearData.setText(yearData); 
 
 		// Load the month label 
 		lblMonthTitle.setText("<html><p align='center'><strong>" + months[month] + " " + year + " Rainfall Data (in mm)</strong> <br />Average: " + rainfall.returnMonthAverage(year, month) + "" + "</p></html>"); 
 		lblMonthTitle.setBounds(400-(lblMonthTitle.getPreferredSize().width)/2, 50, 500, 25);
+		lblYearTitle.setBounds(400-(lblMonthTitle.getPreferredSize().width)/2, 50, 500, 25);
 
 		// Select this year in combo boxes
-		cmbYear.setSelectedItem(String.valueOf(year)); 
+		cmbYear.setSelectedItem(String.valueOf(year));  
 		cmbYear2.setSelectedItem(String.valueOf(year)); 
 		
 		// Clear table
@@ -278,32 +348,57 @@ public class MyCalendar extends JFrame {
 	}
 
 	static class plotMonth_Listener implements ActionListener {
-		static MyPlot frmPlotMonth = new MyPlot(rainfall);
+		static MyPlot frmPlot = new MyPlot(rainfall);
 		public void actionPerformed (ActionEvent e) {
-			this.frmPlotMonth.disposeFrame();
-			frmPlotMonth.setPlot(selectedYear, selectedMonth, 0, 0);
+			this.frmPlot.disposeFrame();
+			frmPlot.setPlotMonth(selectedYear, selectedMonth, 0, 0);
 		}
 	}
 
 	static class plotPrevMonth_Listener implements ActionListener {
-		static MyPlot frmPlotMonth = new MyPlot(rainfall);
+		static MyPlot frmPlot = new MyPlot(rainfall);
 		public void actionPerformed (ActionEvent e) {
-			this.frmPlotMonth.disposeFrame();
+			this.frmPlot.disposeFrame();
 			if (selectedMonth == 0) // Decrement one year
-				frmPlotMonth.setPlot(selectedYear, selectedMonth, selectedYear - 1, 11);
+				frmPlot.setPlotMonth(selectedYear, selectedMonth, selectedYear - 1, 11);
 			else // Decrement one month
-				frmPlotMonth.setPlot(selectedYear, selectedMonth, selectedYear, selectedMonth - 1);
+				frmPlot.setPlotMonth(selectedYear, selectedMonth, selectedYear, selectedMonth - 1);
 		}
 	}
 
 	static class plotNextMonth_Listener implements ActionListener {
-		static MyPlot frmPlotMonth = new MyPlot(rainfall);
+		static MyPlot frmPlot = new MyPlot(rainfall);
 		public void actionPerformed (ActionEvent e) {
-			this.frmPlotMonth.disposeFrame();
+			this.frmPlot.disposeFrame();
 			if (selectedMonth == 11) // Decrement one year
-				frmPlotMonth.setPlot(selectedYear, selectedMonth, selectedYear + 1, 0);
+				frmPlot.setPlotMonth(selectedYear, selectedMonth, selectedYear + 1, 0);
 			else // Decrement one month
-				frmPlotMonth.setPlot(selectedYear, selectedMonth, selectedYear, selectedMonth + 1);
+				frmPlot.setPlotMonth(selectedYear, selectedMonth, selectedYear, selectedMonth + 1);
 		}
 	}
+
+	static class plotAgainstMonth_Listener implements ActionListener {
+		static MyPlot frmPlot = new MyPlot(rainfall);
+		public void actionPerformed (ActionEvent e) {
+			this.frmPlot.disposeFrame();
+			frmPlot.setPlotMonth(selectedYear, selectedMonth, Integer.parseInt(cmbYearAgainst.getSelectedItem().toString()), rainfall.returnIndexOfMonth(cmbMonthAgainst.getSelectedItem().toString()));
+		}
+	}
+
+	static class plotYear_Listener implements ActionListener {
+		static MyPlot frmPlot = new MyPlot(rainfall);
+		public void actionPerformed (ActionEvent e) {
+			this.frmPlot.disposeFrame();
+			frmPlot.setPlotYear(selectedYear, 0);
+		}
+	}
+
+	static class plotYearAgainst_Listener implements ActionListener {
+		static MyPlot frmPlot = new MyPlot(rainfall);
+		public void actionPerformed (ActionEvent e) {
+			this.frmPlot.disposeFrame();
+			frmPlot.setPlotYear(selectedYear, Integer.parseInt(cmbYearAgainst2.getSelectedItem().toString()));
+		}
+	}
+
 } 
